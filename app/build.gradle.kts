@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -9,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.gallery"
-        minSdk = 24
+        minSdk = 30
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -52,4 +55,8 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     // Coroutine
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.44")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
 }

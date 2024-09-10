@@ -1,7 +1,68 @@
 package com.example.gallery
 
-class MainViewModel {
+import android.content.Context
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @HiltViewModel
+class MainViewModel @Inject constructor(
+    @ApplicationContext private val context: Context
+) : ViewModel() {
+
+    private val coroutineExceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            Log.d(
+                this@MainViewModel::class.java.simpleName,
+                "Coroutine Exception Handler : ${throwable.message}"
+            )
+        }
+
+    private val mediaItemList = ArrayList<GalleryMediaItem>()
+
+    private var mediaLoadJob: Job? = null
+
+    private val _notifyMediaItem = MutableLiveData<NotifyDataSetChanged>()
+    val notifyMediaItem : LiveData<NotifyDataSetChanged>
+        get() = _notifyMediaItem
+
+
+    fun getImageMediaList() {
+        mediaLoadJob = CoroutineScope(Dispatchers.IO + coroutineExceptionHandler).launch {
+            Log.d("phael", "MediaLoad Start")
+            MediaLoader.getImageMediaItems(
+                context = context,
+                emitSize = 100,
+                callback = { list ->
+                    val startIndex = mediaItemList.size
+                    mediaItemList.addAll(list)
+                    Log.d("phael", "startIndex: $startIndex, mediaItemList Size : ${mediaItemList.size} ")
+
+                    _notifyMediaItem.postValue(NotifyDataSetChanged(startIndex, mediaItemList.size))
+                }
+            )
+            Log.d("phael", "MediaLoad finish")
+        }
+    }
+
+    fun getMediaItemList() = mediaItemList
+
+    data class NotifyDataSetChanged(
+        val startIndex: Int,
+        val endIndex: Int
+    )
 }

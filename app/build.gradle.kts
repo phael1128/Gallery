@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.gallery"
-        minSdk = 30
+        minSdk = 33
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -59,4 +59,17 @@ dependencies {
     // Hilt
     implementation("com.google.dagger:hilt-android:2.44")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
+
+    // Coroutine
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1")
+
+
+    // ViewModel
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
+
+    // LifeCycleScope
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
+
+
 }

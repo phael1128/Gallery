@@ -42,21 +42,18 @@ class MainViewModel @Inject constructor(
 
     fun getImageMediaList() {
         mediaLoadJob = CoroutineScope(Dispatchers.IO + coroutineExceptionHandler).launch {
-            Log.d("phael", "MediaLoad Start")
             MediaLoader.getImageMediaItems(
                 context = context,
                 emitSize = 100,
                 callback = { list ->
                     val startIndex = mediaItemList.size
                     mediaItemList.addAll(list)
-                    Log.d("phael", "startIndex: $startIndex, mediaItemList Size : ${mediaItemList.size} ")
 
                     launch(Dispatchers.Main) {
                         _notifyMediaItem.emit(NotifyDataSetChanged(startIndex, mediaItemList.size))
                     }
                 }
             )
-            Log.d("phael", "MediaLoad finish")
         }
     }
 

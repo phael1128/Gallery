@@ -44,7 +44,7 @@ class MainViewModel @Inject constructor(
         mediaLoadJob = CoroutineScope(Dispatchers.IO + coroutineExceptionHandler).launch {
             MediaLoader.getImageMediaItems(
                 context = context,
-                emitSize = 100,
+                emitSize = 500,
                 callback = { list ->
                     val startIndex = mediaItemList.size
                     mediaItemList.addAll(list)

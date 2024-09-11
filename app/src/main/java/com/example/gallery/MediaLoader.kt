@@ -5,7 +5,9 @@ import android.media.ExifInterface
 import android.provider.MediaStore
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 
 object MediaLoader {
 
@@ -36,10 +38,8 @@ object MediaLoader {
             null,
             orderBy
         )?.use { cursor ->
-            val idIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
             val absoluteUriIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
             val dateTakenIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN)
-            val dateModifiedIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED)
 
             val noDateTakenList = getNoDateTakenList(context)
             var noDateTakenListIndex = 0
@@ -60,7 +60,6 @@ object MediaLoader {
                         while (noDateTakenListIndex < noDateTakenList.size) {
                             if (noDateTakenList[noDateTakenListIndex].dateTaken >= dateTaken) {
                                 galleryMediaItemList.add(noDateTakenList[noDateTakenListIndex++])
-
                             } else {
                                 break
                             }
@@ -122,10 +121,28 @@ object MediaLoader {
                     if (dateTaken > 0L) break
 
                     val absolutePath = cursor.getString(absoluteUriIndex)
+
                     GalleryMediaItem(
                         absolutePath = absolutePath
                     ).apply {
-                        this.dateTaken = getReplacedDateTaken(absolutePath)
+
+                        val newDateTaken: Long = absolutePath.let {
+                            val exifTime = getExifTime(it)
+                            val fileLastModified = getFileLastModified(it)
+
+                            if (exifTime == -1L) {
+                                fileLastModified
+                            } else {
+                                // exif 시간과 dateModifed가 24시간 이내의 차이면 lasModification 아니면 exif 시간
+                                if (abs(fileLastModified - exifTime) <= ONE_DAY) {
+                                    fileLastModified
+                                } else {
+                                    exifTime
+                                }
+                            }
+                        }
+
+                        this.dateTaken = if (dateTaken == 0L) newDateTaken else dateTaken
                         noDateTakenList.add(this@apply)
                     }
 
@@ -137,24 +154,25 @@ object MediaLoader {
         return noDateTakenList
     }
 
-    private fun getReplacedDateTaken(filePath: String): Long {
+    private fun getExifTime(filePath: String): Long {
         val exif = ExifInterface(filePath)
         val exifDateFormat = exif.getAttribute(ExifInterface.TAG_DATETIME)
-        val exifTime: Long = exifDateFormat?.let {
-            SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.getDefault()).parse(it)?.time ?: -1L
+        return exifDateFormat?.let {
+            it.parse(it)?.time ?: -1L
         } ?: -1L
-
-        val fileLastModified: Long = File(filePath).lastModified()
-
-        return if (exifTime == -1L) {
-            fileLastModified
-        } else {
-            if (Math.abs(fileLastModified - exifTime) < ONE_DAY) {
-                fileLastModified
-            } else {
-                exifTime
-            }
-        }
     }
 
+    private fun getFileLastModified(originalUri: String): Long = File(originalUri).lastModified()
+
+    private fun String.parse(fromPattern: String?): Date? =
+        if (this.isNull() || fromPattern.isNull()) null
+        else {
+            try {
+                SimpleDateFormat(fromPattern, Locale.getDefault()).parse(this)
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+    inline fun String?.isNull(): Boolean = (this == null) || this.trim().isEmpty()
 }

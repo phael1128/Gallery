@@ -3,8 +3,10 @@ package com.example.gallery
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.gallery.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,6 +49,31 @@ class MainActivity : AppCompatActivity() {
         with (binding) {
             rvImages.adapter = mediaItemListAdapter
             rvImages.layoutManager = GridLayoutManager(this@MainActivity, 3)
+            rvImages.addItemDecoration(object : RecyclerView.ItemDecoration() {
+
+                // px
+                private val margin = 8
+
+                override fun getItemOffsets(
+                    outRect: Rect,
+                    view: View,
+                    parent: RecyclerView,
+                    state: RecyclerView.State
+                ) {
+                    super.getItemOffsets(outRect, view, parent, state)
+
+                    val spanCount = (parent.layoutManager as GridLayoutManager).spanCount
+                    val position = parent.getChildAdapterPosition(view)
+                    val column = position % spanCount
+
+                    outRect.left = column * margin / spanCount
+                    outRect.right = margin - (column + 1) * margin / spanCount
+
+                    if (position >= spanCount) {
+                        outRect.top = margin
+                    }
+                }
+            })
         }
 
         lifecycleScope.launch {

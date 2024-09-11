@@ -36,9 +36,8 @@ class MainViewModel @Inject constructor(
 
     private var mediaLoadJob: Job? = null
 
-    private val _notifyMediaItem = MutableLiveData<NotifyDataSetChanged>()
-    val notifyMediaItem : LiveData<NotifyDataSetChanged>
-        get() = _notifyMediaItem
+    private val _notifyMediaItem = MutableSharedFlow<NotifyDataSetChanged>()
+    val notifyMediaItem: SharedFlow<NotifyDataSetChanged> = _notifyMediaItem.asSharedFlow()
 
 
     fun getImageMediaList() {
@@ -52,7 +51,9 @@ class MainViewModel @Inject constructor(
                     mediaItemList.addAll(list)
                     Log.d("phael", "startIndex: $startIndex, mediaItemList Size : ${mediaItemList.size} ")
 
-                    _notifyMediaItem.postValue(NotifyDataSetChanged(startIndex, mediaItemList.size))
+                    launch(Dispatchers.Main) {
+                        _notifyMediaItem.emit(NotifyDataSetChanged(startIndex, mediaItemList.size))
+                    }
                 }
             )
             Log.d("phael", "MediaLoad finish")

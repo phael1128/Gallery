@@ -48,12 +48,16 @@ class MainActivity : AppCompatActivity() {
             rvImages.layoutManager = GridLayoutManager(this@MainActivity, 3)
         }
 
-        onUiCollect()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                onUiCollect()
+            }
+        }
         requestPermission()
     }
 
-    private fun onUiCollect() {
-        viewModel.notifyMediaItem.observe(this@MainActivity) {
+    private suspend fun onUiCollect() {
+        viewModel.notifyMediaItem.collect {
             mediaItemListAdapter.notifyItemRangeChanged(it.startIndex, it.endIndex)
         }
     }

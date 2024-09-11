@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        with (binding) {
+        with(binding) {
             rvImages.adapter = mediaItemListAdapter
             rvImages.layoutManager = GridLayoutManager(this@MainActivity, 3)
             rvImages.addItemDecoration(object : RecyclerView.ItemDecoration() {

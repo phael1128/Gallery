@@ -174,5 +174,5 @@ object MediaLoader {
             }
         }
 
-    inline fun String?.isNull(): Boolean = (this == null) || this.trim().isEmpty()
+    private fun String?.isNull(): Boolean = (this == null) || this.trim().isEmpty()
 }
